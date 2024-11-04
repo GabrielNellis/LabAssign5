@@ -25,7 +25,7 @@ void printElem(ELEM<T>& v) { //prints an element of that type
 }
 void initVec(VEC<int>& v, ELEM<int>&& cons) {
     for (auto e : v) {
-        v.push_back(cons[e]);
+        //v.push_back(cons[e]);
     }
 }
 /*
