@@ -4,7 +4,7 @@ template <class T>
 using ELEM = std::vector<T>;
 
 template <class T>
-using VEC = std::vector<ELEM<T>>;
+using VEC = std::vector<ELEM<T>>; //VEC = std::vector<vector<T>>
 
 template <class T>
 using action_t = T(*) (int);
@@ -17,29 +17,29 @@ using map_t = T(*) (T, T);
 
 template <class T>
 void printElem(ELEM<T>& v) { //prints an element of that type
-    if (v.size > 1) std::cout << "(";
-    for (auto e : v) {
-        std::cout << v[e] << " ";
+    if (v.size() > 1) std::cout << "(";
+    for (int i = 0; i < v.size(); i++) {
+        std::cout << v[i] << " ";
     }
-    if (v.size > 1) std::cout << ")";
+    if (v.size() > 1) std::cout << ")";
 }
-void initVec(VEC<int>& v, ELEM<int>&& cons) {
-    for (auto e : v) {
-        //v.push_back(cons[e]);
-    }
+
+template <class T>
+void initElem(ELEM<T>& cons, T elem) {
+    cons.push_back(elem);
 }
-/*
+
 template <class T>
 void initVec(VEC<T>& v, ELEM<T>&& cons) { //initializes the vector with the given elements
-    for (auto e : v) {
-        v.push_back(cons[e]);
+    for (int i = 0; i < v.size(); i++) {
+        initElem(cons, cons[i]); //compiler said there was no overloaded constructer in the vector function, so I made initElem as a compromise
     }
 }
-*/
+
 template <class T>
 void printVec(VEC<T>& v) { //prints a vector, calls printElem
-    for (auto e : v) {
-        printElem(v[e]);
+    for (int i = 0; i < v.size(); i++) {
+        printElem(v[i]); 
     }
 }
 
@@ -54,14 +54,23 @@ VEC<T> generate(int N, action_t<T> f) { //takes an int and a function, runs a lo
 
 template<class T>
 VEC<T> zip(VEC<T>& v, VEC<T>& w) { //takes 2 vectors, zips the elements together into one vector ((1),(2),(3)) ((4),(5),(6)) -> ((1,4),(2,5),(3,6))
-
+    VEC<T> tmp;
+    for (int i = 0; i < v.size(); i++) {
+        tmp[i].push_back(v[0][i]); 
+        tmp[i].push_back(w[0][i]); 
+    }
+    return tmp;
 }
 
 template<class T>
 VEC<T> filter(VEC<T>& v, pred_t<T> f) { //extracts the elements of a vector that meets the condition, tosses out those that don't
     VEC<T> tmp;
-    for (int i = 0; i < v.size; i++) {
-        if (f(i)) tmp.push_back(i);
+    int counter = 0;
+    for (int i = 0; i < v.size(); i++) {
+        if (f(i)) {
+            tmp[counter].push_back(i);
+            counter++;
+        }
     }
     return tmp;
 }
@@ -69,8 +78,8 @@ VEC<T> filter(VEC<T>& v, pred_t<T> f) { //extracts the elements of a vector that
 template<class T>
 VEC<T> map(VEC<T>& v, action_t<T> f) { //
     VEC<int> tmp;
-    for (auto e : v) {
-        tmp.push_back(f(e));
+    for (int i = 0; i < v.size(); i++) {
+        tmp[i].push_back(f(i));  
     }
     return tmp;
 }
@@ -78,9 +87,9 @@ VEC<T> map(VEC<T>& v, action_t<T> f) { //
 template<class T>
 ELEM<T> reduce(VEC<T>& v, map_t<T> f, ELEM<T> ident) { //reduces a vector to a scalar (f(f(ident,v1),v2)) where ident shouldn't change v1 (like multiplying by 1)
     ELEM<T> sum = ident;
-    for (auto e : v) {
-        sum = f(sum, e);
-    }
+    for (int i = 0; i < v.size(); i++) { 
+        sum.push_back(f(sum[0], v[0][i])); //v[0][i] since v should essentially be a vector instead of a vector of vectors
+    } 
     return sum;
 }
 
@@ -96,8 +105,11 @@ bool g(T a) {
 
 template<class T>
 int h(T a) {
+    /*
     if (a > 1) return 1;
     else return 0;
+    */
+    return (a > 1 ? 1 : 0); //returns 1 if a>1, otherwise returns 0
 }
 
 template<class T>
@@ -112,7 +124,6 @@ int main()
     VEC<int> w;
     initVec(w, ELEM<int>{-1, 3, -3, 4});
     printVec(v);
-    /*
     std::cout << std::string(10, '*') << std::endl;
     printVec(w);
     std::cout << std::string(10, '*') << std::endl;
@@ -122,8 +133,8 @@ int main()
     VEC<int> x = zip(z, z);
     printVec(x);
     std::cout << std::string(10, '*') << std::endl;
-    VEC<int> a = generate(10, f); //f is a function that squares
-    printVec(a);
+    //VEC<int> a = generate(10, f); //f is a function that squares
+    //printVec(a);
     VEC<int> y = filter(w, g); //g is a bool that returns true if arg > 0
     printVec(y);
     VEC<int> u = map(w, h); //h is like g but returns 1 or 0
@@ -147,5 +158,4 @@ int main()
     printElem(ec);
 
     return 0;
-    */
 }
